@@ -52,7 +52,7 @@ class AuthController extends Controller
                         ->withErrors($validator)
                         ->withInput($request->all());
         }
-       P
+       
         if(isset($_POST["remember_me"]))
         {
           if($_POST["remember_me"]=='on')
@@ -436,8 +436,48 @@ class AuthController extends Controller
 
    public function test1()
    {
-    $this->binary_income('umesh', 'umesh_left', '_left', '3000');
+      $a= $this->binary_income("admin","umesh","_left","1800");
+      //print_r($a);
    }
+
+
+
+
+     public function getSelfLeftRightCount($user_id)
+      {
+          
+        $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+        $self_left_count  = 0;
+        $self_right_count = 0;
+
+        $child_data = \DB::table('users')->where(['spencer_id'=>$user_id])->get();
+
+        foreach ($child_data as $key => $value) 
+        {
+          
+          if ($value->my_side == "_left" AND $value->is_active == 2) 
+          {
+            $self_left_count = $self_left_count + 1;
+           
+          }
+
+          if ($value->my_side == "_right"  AND $value->is_active == 2) 
+          {
+            $self_right_count = $self_right_count + 1;
+          }
+
+        }
+
+        $arr_count               = [];
+        $arr_count['self_left']  = $self_left_count;
+        $arr_count['self_right'] = $self_right_count;
+
+
+        return $arr_count;
+      
+
+      }
 
 
 
@@ -455,24 +495,18 @@ class AuthController extends Controller
               while ($total_count>0)
               {
                 
-                $user   = \DB::table('users')->where('email',' = ',$temp_binary_sponcer)->first();
+                $user   = \DB::table('users')->where('email','=',$temp_binary_sponcer)->first();
+
+               
 
                 $today  = date('Y-m-d');
 
                 $amount = 0;
 
-                $day_amount = \DB::table('transaction')->where('reciver_id','=',$temp_binary_sponcer)->where('day_amt_date','=',$today)->where('activity_reason','=',"matching")->get();
-
-                
-                
-                foreach ($day_amount as $key => $value)
-
-                   {
-                      $amount = $amount+$value->day_amt;
-                   }      
+               
               
 
-                  $capping = \DB::table('package')->where('package_name','=',$user->plan)->first();
+                  
               
 
                   //check user has binary sponcer or not 
@@ -490,6 +524,11 @@ class AuthController extends Controller
                              $left_business  = $this->getLeftBusiness($user->email);
 
                              $right_business = $this->getRightBusiness($user->email);
+
+
+                             $self_left_right = $this->getSelfLeftRightCount($user->email);
+
+                             $capping = \DB::table('package')->where('package_name','=',$user->plan)->first();
                           
 
                               //check users left count and right count here ratio is 1:1 we can set it to 2:1 and 1:2 also

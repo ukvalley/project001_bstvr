@@ -222,3 +222,7 @@ Route::get('/view1',							['as'=>'view1',						'uses'=>'Admin\AdminController@v
 
 	Route::post('/choose_plan',		['as'=>'choose_plan',	'uses'=>'Admin\AuthController@choose_plan']);
 
+
+
+
+	Route::get('export', 'Admin\AdminController@export');

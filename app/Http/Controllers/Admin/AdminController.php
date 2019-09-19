@@ -417,6 +417,38 @@ $data = \DB::table('transaction')
       return view('admin.admin_user.withdrawl_request',$this->arr_view_data);
     }
 
+
+   
+      public function export()
+      {       
+          $countries=\DB::table('users')->select('email','user_name','middle_name','last_name','ifsc','banck_name','bank_account_no','branch')->get();
+          $tot_record_found=0;
+          if(count($countries)>0)
+          {
+              $tot_record_found=1;
+               
+        $CsvData=array('sr no','email','user_name','middle_name','last_name','ifsc','banck_name','bank_account_no','branch');          
+              foreach($countries as $key => $value)
+              {
+                  $CsvData[]= ($key+1).','.$value->email.','.$value->user_name.','.$value->middle_name.','.$value->last_name.','.$value->ifsc.','.$value->banck_name.','.$value->bank_account_no.','.$value->branch;
+              }
+               
+              $filename=date('Y-m-d').".csv";
+              $file_path=base_path().'/'.$filename;   
+              $file = fopen($file_path,"w+");
+              foreach ($CsvData as $exp_data){
+                fputcsv($file,explode(',',$exp_data));
+              }   
+              fclose($file);          
+       
+              $headers = ['Content-Type' => 'application/csv'];
+              return response()->download($file_path,$filename,$headers );
+          }
+          return view('admin.admin_user.download',['record_found' =>$tot_record_found]);    
+      }
+
+    
+
     public function withdrawl_history()
     { 
       $data = \DB::table('transaction')->where('activity_reason','=','withdrawl')->where('approval','=','completed')->orderBy('id','DESC')->get();
@@ -2577,12 +2609,17 @@ public function transfer_epin()
           $pending_withdrawl=$this->pending_withdrawl();
           $total_fund=        $this->plan_amount_user($user->email);
 
+
+          $self_right_left = $this->getSelfLeftRightCount($user->email);
+
         
 
 
         $wallet_amount= $matching_income+$level_income+$referal_income-$total_withdrawl;
 
        $arr_transaction                      = [];
+
+       $arr_transaction['self_right_left']   = $self_right_left;
 
        $arr_transaction['left_count']        = $left_count;
        $arr_transaction['right_count']       = $right_count;
@@ -2602,9 +2639,6 @@ public function transfer_epin()
        $arr_transaction['pending_withdrawl'] = $pending_withdrawl;
        $arr_transaction['total_fund']        = $total_fund;
        // $arr_transaction['total_unit']     = $total_unit;
-
-      
-
 
         return $arr_transaction;
       }
@@ -2670,470 +2704,6 @@ public function transfer_epin()
         }
 
 
-
-
-
-    public function createlevelIncome($level_id,$amount,$sponcer_id)
-
-        {
-
-      $plan = \DB::table('package')->where(['id'=>'1'])->first();
-      //ulpine links
-     
-      for ($i=0; $i < $plan->upline ; $i++) 
-      { 
-        if($i==0)
-        {
-          $parent_under = $sponcer_id;
-        }
-        else
-        {
-          $data  = $this->UserModel->where(['email'=>$parent_under])->first();
-          $parent_under = $data['spencer_id'];
-        }
-
-        $data  = $this->UserModel->where(['email'=>$parent_under])->first();
-        if(!empty($parent_under))
-        {
-            if($i==0)
-            {
-
-          $child_count= $this->UserModel->where(['spencer_id'=>$parent_under])->count();
-          $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-         
-          $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-      
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>1])->first();
-          
-          $level= $level_income->{"CSPL"};
-
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-          \DB::table('transaction')->insert($arr_transaction);
-          
-         
-            }
-            if($i==1)
-          {    
-          
-         $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>2])->first();
-         $level= $level_income->{"CSPL"};
-         
-         
-
-        $arr_transaction                    = [];
-        $arr_transaction['reciver_id']      = $parent_under;
-        $arr_transaction['level_id']        = $level_id;
-        $arr_transaction['sender_id']       = '';
-        $arr_transaction['amount']          = $amount*($level/100);
-        $arr_transaction['activity_reason'] = 'level';
-        $arr_transaction['date']            = date('Y-m-d');
-        $arr_transaction['approval']        = 'pending';
-        $arr_transaction['generator']       = 'system';
-        $arr_transaction['percentage']      = $level;
-        $arr_transaction['plan_amt']        = $amount;
-        $arr_transaction['level']           = $i+1;
-          \DB::table('transaction')->insert($arr_transaction);
-            }
-
-            if($i==2)
-            {
-            $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-           $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>3])->first();
-         $level= $level_income->{"CSPL"};
-        
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-         
-
-          \DB::table('transaction')->insert($arr_transaction);
-            }
-
-            if($i==3)
-            {
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-         $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>4])->first();
-        $level= $level_income->{"CSPL"};
-        
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-            }
-
-            
-            if($i==4)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-                $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-                
-           
-                
-            
-              
-          
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>5])->first();
-        $level= $level_income->{"CSPL"};
-     
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-          
-           
-            }
-
-            if($i==5)
-            {
-        $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();        
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>6])->first();
-         $level= $level_income->{"CSPL"};
-         
-        $arr_transaction                    = [];
-        $arr_transaction['reciver_id']      = $parent_under;
-        $arr_transaction['level_id']        = $level_id;
-        $arr_transaction['sender_id']       = '';
-        $arr_transaction['amount']          = $amount*($level/100);
-        $arr_transaction['activity_reason'] = 'level';
-        $arr_transaction['date']            = date('Y-m-d');
-        $arr_transaction['approval']        = 'pending';
-        $arr_transaction['generator']       = 'system';
-        $arr_transaction['percentage']      = $level;
-        $arr_transaction['plan_amt']        = $amount;
-        $arr_transaction['level']           = $i+1;
-
-       
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-            
-
-            if($i==6)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-         
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>7])->first();
-        $level= $level_income->{"CSPL"};
-     
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-           
-
-           if($i==7)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>8])->first();
-        $level= $level_income->{"CSPL"};
-     
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-           
-
-
-
-             if($i==8)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-         
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>9])->first();
-        $level= $level_income->{"CSPL"};
-     
-          $arr_transaction                    = [];
-          $arr_transaction['reciver_id']      = $parent_under;
-          $arr_transaction['level_id']        = $level_id;
-          $arr_transaction['sender_id']       = '';
-          $arr_transaction['amount']          = $amount*($level/100);
-          $arr_transaction['activity_reason'] = 'level';
-          $arr_transaction['date']            = date('Y-m-d');
-          $arr_transaction['approval']        = 'pending';
-          $arr_transaction['generator']       = 'system';
-          $arr_transaction['percentage']      = $level;
-          $arr_transaction['plan_amt']        = $amount;
-          $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-            
-
-
-             if($i==9)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>10])->first();
-        $level= $level_income->{"CSPL"};
-     
-          $arr_transaction                    = [];
-          $arr_transaction['reciver_id']      = $parent_under;
-          $arr_transaction['level_id']        = $level_id;
-          $arr_transaction['sender_id']       = '';
-          $arr_transaction['amount']          = $amount*($level/100);
-          $arr_transaction['activity_reason'] = 'level';
-          $arr_transaction['date']            = date('Y-m-d');
-          $arr_transaction['approval']        = 'pending';
-          $arr_transaction['generator']       = 'system';
-          $arr_transaction['percentage']      = $level;
-          $arr_transaction['plan_amt']        = $amount;
-          $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-            
-
-
-             if($i==10)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>11])->first();
-        $level= $level_income->{"CSPL"};
-     
-          $arr_transaction                    = [];
-           $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-          $arr_transaction['sender_id']       = '';
-          $arr_transaction['amount']          = $amount*($level/100);
-          $arr_transaction['activity_reason'] = 'level';
-          $arr_transaction['date']            = date('Y-m-d');
-          $arr_transaction['approval']        = 'pending';
-          $arr_transaction['generator']        = 'system';
-           $arr_transaction['percentage']        = $level;
-          $arr_transaction['plan_amt']        = $amount;
-          $arr_transaction['level']         = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-           
-
-
-
-             if($i==11)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>12])->first();
-        $level= $level_income->{"CSPL"};
-     
-          $arr_transaction                    = [];
-          $arr_transaction['reciver_id']      = $parent_under;
-          $arr_transaction['level_id']        = $level_id;
-          $arr_transaction['sender_id']       = '';
-          $arr_transaction['amount']          = $amount*($level/100);
-          $arr_transaction['activity_reason'] = 'level';
-          $arr_transaction['date']            = date('Y-m-d');
-          $arr_transaction['approval']        = 'pending';
-          $arr_transaction['generator']       = 'system';
-          $arr_transaction['percentage']      = $level;
-          $arr_transaction['plan_amt']        = $amount;
-          $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-           
-
-
-             if($i==12)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-       
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>13])->first();
-        $level= $level_income->{"CSPL"};
-     
-          $arr_transaction                    = [];
-          $arr_transaction['reciver_id']      = $parent_under;
-          $arr_transaction['level_id']        = $level_id;
-          $arr_transaction['sender_id']       = '';
-          $arr_transaction['amount']          = $amount*($level/100);
-          $arr_transaction['activity_reason'] = 'level';
-          $arr_transaction['date']            = date('Y-m-d');
-          $arr_transaction['approval']        = 'pending';
-          $arr_transaction['generator']       = 'system';
-          $arr_transaction['percentage']      = $level;
-          $arr_transaction['plan_amt']        = $amount;
-          $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-           
-
-
-
-             if($i==13)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-        
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>14])->first();
-        $level= $level_income->{"CSPL"};
-     
-         $arr_transaction                    = [];
-         $arr_transaction['reciver_id']      = $parent_under;
-         $arr_transaction['level_id']        = $level_id;
-         $arr_transaction['sender_id']       = '';
-         $arr_transaction['amount']          = $amount*($level/100);
-         $arr_transaction['activity_reason'] = 'level';
-         $arr_transaction['date']            = date('Y-m-d');
-         $arr_transaction['approval']        = 'pending';
-         $arr_transaction['generator']       = 'system';
-         $arr_transaction['percentage']      = $level;
-         $arr_transaction['plan_amt']        = $amount;
-         $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-            
-
-
-
-             if($i==14)
-            {
-                
-                $parent_data= $this->UserModel->where(['email'=>$parent_under])->first();
-        $user_package  = $this->UserModel->where(['email'=>$parent_under])->first();
-    
-          $level_income =  \DB::table('level_bonus')->select($user_package->plan)->where(['level'=>15])->first();
-        $level= $level_income->{"CSPL"};
-     
-      $arr_transaction                    = [];
-      $arr_transaction['reciver_id']      = $parent_under;
-      $arr_transaction['level_id']        = $level_id;
-      $arr_transaction['sender_id']       = '';
-      $arr_transaction['amount']          = $amount*($level/100);
-      $arr_transaction['activity_reason'] = 'level';
-      $arr_transaction['date']            = date('Y-m-d');
-      $arr_transaction['approval']        = 'pending';
-      $arr_transaction['generator']       = 'system';
-      $arr_transaction['percentage']      = $level;
-      $arr_transaction['plan_amt']        = $amount;
-      $arr_transaction['level']           = $i+1;
-
-        
-
-          \DB::table('transaction')->insert($arr_transaction);
-        }
-         
-            
-
-        }
-        elseif($parent_under==null)
-        {
-         
-        }
-        else{
-            $i--;
-            }
-      }
-
-    }
-
-    
 
       public function user_kyc()
       {
@@ -3298,6 +2868,44 @@ public function transfer_epin()
       }
 
 
+
+       public function getSelfLeftRightCount($user_id)
+      {
+          
+        $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+        $self_left_count  = 0;
+        $self_right_count = 0;
+
+        $child_data = \DB::table('users')->where(['spencer_id'=>$user_id])->get();
+
+        foreach ($child_data as $key => $value) 
+        {
+          
+          if ($value->my_side == "_left" AND $value->is_active == 2) 
+          {
+            $self_left_count = $self_left_count + 1;
+           
+          }
+
+          if ($value->my_side == "_right"  AND $value->is_active == 2) 
+          {
+            $self_right_count = $self_right_count + 1;
+          }
+
+        }
+
+        $arr_count               = [];
+        $arr_count['self_left']  = $self_left_count;
+        $arr_count['self_right'] = $self_right_count;
+
+
+        return $arr_count;
+      
+
+      }
+
+
       public function getLeftBusiness($user_id)
       {
           
@@ -3447,9 +3055,6 @@ public function transfer_epin()
    
       public function get_all_child($user_id, array $user_array)
       {   
-       
-
-
 
         $get_left_right_data = \DB::table('users')->where(['email'=>$user_id])->first();
 
@@ -3458,10 +3063,11 @@ public function transfer_epin()
 
         $left = $get_left_right_data->_left;
          
-        $temp_arr =[];
-        $temp_arr['user_id']   =  $left;
-        $temp_arr['side']      =     "left";
-        $temp_arr['self_bv']   = $this->getBV($left);
+        $temp_arr            = [];
+        $temp_arr['user_id'] = $left;
+        $temp_arr['side']    = "left";
+        
+        $temp_arr['self_bv'] = $this->getBV($left);
 
         array_push($user_array, $temp_arr);
 
@@ -3475,10 +3081,11 @@ public function transfer_epin()
         {
         $right = $get_left_right_data->_right;
          
-        $temp_arr =[];
-        $temp_arr['user_id']   =  $right;
-        $temp_arr['side']   =     "right";
-        $temp_arr['self_bv']   = $this->getBV($right);
+        $temp_arr            = [];
+        $temp_arr['user_id'] = $right;
+        $temp_arr['side']    = "right";
+        
+        $temp_arr['self_bv'] = $this->getBV($right);
         
        array_push($user_array, $temp_arr);
     
