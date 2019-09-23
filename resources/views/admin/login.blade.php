@@ -83,7 +83,7 @@
 
 
     <a href="{{url('/')}}/admin/forget_password">I forgot my password</a><br>
-    <a href="{{url('/')}}/admin/registration" class="text-center">Register a new membership</a>
+    <!-- <a href="{{url('/')}}/admin/registration" class="text-center">Register a new membership</a> -->
 
   </div>
   <!-- /.login-box-body -->

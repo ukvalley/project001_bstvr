@@ -103,7 +103,7 @@
         </li>
 
 
-         <li class="treeview">
+     <!--     <li class="treeview">
           <a class="collapsible-header waves-effect waves-cyan"><i class="fa fa-image"></i>Return<span class="pull-right-container">
               <i class="fa fa-angle-left pull-right"></i>
             </span>
@@ -118,7 +118,7 @@
             
 
           </ul>
-        </li>
+        </li> -->
 
 
 
@@ -144,9 +144,7 @@
             <li>
                <a href="{{url('/')}}/admin/epin_transaction" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>Epin Transaction</a>
             </li>
- <li>
-              <a href="{{url('/')}}/admin/user_transaction_daily_admin" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>Daily-Transction</a>
-            </li> 
+ 
           </ul>
         </li>
 
@@ -213,23 +211,42 @@
             <li>
               <a href="{{url('/')}}/admin/self_team" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>My Team</a>
             </li>
-          <!--   <li>
+            <li>
               <a href="{{url('/')}}/admin/level_tree?id={{$user->email}}" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i> Geneology Tree</a>
-            </li> -->
+            </li>
           </ul>
         </li>
 
 
 
-        <li class="bold"><a href="{{url('/')}}/admin/user_level_income" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Referal Payout</a>
+        <li class="bold"><a href="{{url('/')}}/admin/user_level_income" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Leadership Bonus</a>
 
 
-           <li class="bold"><a href="{{url('/')}}/admin/referal_bonus_income" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Monthly Bonus</a>
+           <li class="bold"><a href="{{url('/')}}/admin/booster_income_data_view" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Super Booster</a>
 
-             <li class="bold"><a href="{{url('/')}}/admin/u_daily_income" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Investment Payout</a>
+            
 
-               <li class="bold"><a href="{{url('/')}}/admin/user_transaction" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Withdrawl History</a>
-        
+              
+          <li class="treeview">
+          <a class="collapsible-header waves-effect waves-cyan"><i class="fa fa-image"></i>Epin Management<span class="pull-right-container">
+              <i class="fa fa-angle-left pull-right"></i>
+            </span>
+          </a>
+          <ul class="treeview-menu">
+           
+
+            <li>
+              <a href="{{url('/')}}/admin/unused_pin" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>Activate user</a>
+            </li>
+
+           
+           
+            <li>
+               <a href="{{url('/')}}/admin/epin_transaction" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>Epin Transaction</a>
+            </li>
+ 
+          </ul>
+        </li>
         
        
         
@@ -244,6 +261,8 @@
               <li>
               <a href="{{url('/')}}/admin/withdrawl" class="waves-effect waves-cyan"><i class="fa fa-circle-o"></i>Withdrawl Payment</a>
             </li>
+
+             <li class="bold"><a href="{{url('/')}}/admin/user_transaction" class="waves-effect waves-cyan"><i class="fa fa-angellist"></i>Withdrawl History</a>
               
            
          

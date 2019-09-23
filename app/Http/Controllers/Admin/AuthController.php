@@ -892,6 +892,10 @@ class AuthController extends Controller
         $arr_transaction               = [];
         $arr_transaction['epin']       = $e_pin;
         $arr_transaction['is_active']  = "2";
+        if($data_->joining_date==null)
+        {
+        $arr_transaction['joining_date'] = date('Y-m-d');
+        }
         $arr_transaction['topup_date'] = date('Y-m-d');
 
         $data = $this->UserModel->where('email','=',$user_email)->update($arr_transaction);

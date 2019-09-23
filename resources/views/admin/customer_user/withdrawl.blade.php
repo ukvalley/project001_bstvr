@@ -119,9 +119,9 @@ $user = Sentinel::check();
         var withdrawl_amt      = $('#withdrawl_amt').val();
        
         
-        if(parseInt(withdrawl_amt)<'20')
+        if(parseInt(withdrawl_amt)<'500')
         {
-          $('#error_total_amount').text('Withdrawl Amount Should be greater than min $20 and max $200000');
+          $('#error_total_amount').text('Withdrawl Amount Should be greater than min Rs 20 and max Rs 200000');
           
           return false;
         }
@@ -134,7 +134,7 @@ $user = Sentinel::check();
         
         else if(parseInt(withdrawl_amt)>'200000')
         { 
-          $('#error_total_amount').text('Daily Withdrawl Limit is Max $200000 and min $20');
+          $('#error_total_amount').text('Daily Withdrawl Limit is Max Rs 200000 and min Rs 20');
           return false;
         }
         else 

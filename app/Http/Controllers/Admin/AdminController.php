@@ -11,6 +11,7 @@ use Session;
 use Sentinel;
 use Validator;
 use PDF;
+use DateTime;
 use App\Models\UserModel;
 use App\Models\CitiesModel;
 use App\Models\StatesModel;
@@ -58,6 +59,10 @@ class AdminController extends Controller
 
           $this->arr_view_data['data_trans'] = $data;
           $this->arr_view_data['wallet_details']= $wallet_details;
+
+          
+
+          
 
           /*if($user->epin==null)
           {
@@ -136,6 +141,17 @@ class AdminController extends Controller
       $this->arr_view_data['data'] = $data;
       return view('admin.admin_user.transaction',$this->arr_view_data);
     }
+
+
+     public function booster_income_data_view()
+    { 
+      $user = Sentinel::check();
+      $data= $this->booster_income_data($user->email);
+
+      $this->arr_view_data['data'] = $data;
+      return view('admin.customer_user.booster_income_data',$this->arr_view_data);
+    }
+
 
 
     
@@ -916,12 +932,6 @@ $arr_user_data['banck_name']          = $request->input('bank');
       
           \DB::table('transaction')->insert($arr_transaction);
       
-
-
-
-
-
-         
           Session::flash('success', 'Payment Withdrawal Request Sent.');       
           return redirect()->back();
        
@@ -1818,7 +1828,7 @@ for ($i=0; $i < $count ; $i++)
 
 }
 
-public function transfer_epin()
+    public function transfer_epin()
     {
       $arr_view_data[]="";
       $user = Sentinel::check();
@@ -1828,7 +1838,6 @@ public function transfer_epin()
       $this->arr_view_data['data'] = $data;
       $this->arr_view_data['user'] = $user;
 
-
       return view('admin.admin_user.transfer_epin',$this->arr_view_data);
     }
 
@@ -1836,6 +1845,7 @@ public function transfer_epin()
     { 
         $user = Sentinel::check();
         $data_ = \DB::table('epin')->where('amount','=',$_GET['amount'])->where('issue_to','=',$user->email)->where('used_by','=','')->count();
+
         if(!empty($data_))
         {
             $data['status'] = "success";
@@ -1844,7 +1854,7 @@ public function transfer_epin()
         else
         {
             $data['status'] = "success";
-            $data['amount'] = '0';  
+            $data['amount'] = '0';
         }
 
      return $data;
@@ -1976,9 +1986,6 @@ public function transfer_epin()
         }
       
 
-
-
-
         //dashboard conntroller code starts here
 
         public function growth_income()
@@ -2103,7 +2110,8 @@ public function transfer_epin()
 
 
         public function accept_package()
-    {
+      
+      {
       $arr_user_data = [];
       $arr_user_data['approval'] = 'completed';
       $arr_user_data['date'] = date('Y-m-d');
@@ -2609,13 +2617,15 @@ public function transfer_epin()
           $pending_withdrawl=$this->pending_withdrawl();
           $total_fund=        $this->plan_amount_user($user->email);
 
+          $booster_income = $this->booster_income($user->email);
+
 
           $self_right_left = $this->getSelfLeftRightCount($user->email);
 
         
 
 
-        $wallet_amount= $matching_income+$level_income+$referal_income-$total_withdrawl;
+        $wallet_amount= $matching_income+$level_income+$booster_income-$total_withdrawl;
 
        $arr_transaction                      = [];
 
@@ -2632,7 +2642,7 @@ public function transfer_epin()
        $arr_transaction['day_business']      = $day_business;
        $arr_transaction['level_income']      = $level_income;;
 
-       $arr_transaction['referal_income']    = $referal_income;;
+       $arr_transaction['booster_income']    = $booster_income;;
 
        $arr_transaction['total_withdrawl']   = $total_withdrawl;
        $arr_transaction['wallet_amount']     = $wallet_amount;
@@ -2871,7 +2881,7 @@ public function transfer_epin()
 
        public function getSelfLeftRightCount($user_id)
       {
-          
+        
         $user=  \DB::table('users')->where(['email'=>$user_id])->first();
 
         $self_left_count  = 0;
@@ -2881,6 +2891,8 @@ public function transfer_epin()
 
         foreach ($child_data as $key => $value) 
         {
+
+
           
           if ($value->my_side == "_left" AND $value->is_active == 2) 
           {
@@ -2898,12 +2910,26 @@ public function transfer_epin()
         $arr_count               = [];
         $arr_count['self_left']  = $self_left_count;
         $arr_count['self_right'] = $self_right_count;
+        $arr_count['self_cond']   = "false";
 
+        if ($self_left_count >= 2 AND $self_right_count >=1) {
+            
+            $arr_count['self_cond'] = "true";
+
+        }
+
+        elseif ($self_right_count >= 2 AND $self_left_count >=1)
+        {
+          $arr_count['self_cond'] = "true";
+        }
 
         return $arr_count;
       
 
       }
+
+
+
 
 
       public function getLeftBusiness($user_id)
@@ -2946,6 +2972,89 @@ public function transfer_epin()
       }
 
 
+
+       public function getLeftMonthBusiness($user_id,$month,$year)
+      {
+          
+        $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+        if ($user->_left!=null) {
+          $left = \DB::table('users')->where(['email'=>$user->_left])->first();
+          $first_left_bv = $this->get_month_BV($left->email,$month,$year);
+          $user_array1 = [];
+          $user_array = [];
+          $amount=0;
+          $temp_amt =0;
+         $b= $this->get_all_child_between_date($left->email,$user_array,$month,$year);
+         
+        if(isset($b))
+          {
+            foreach ($b as $key => $value) {
+              $temp_amt = $temp_amt+$value['self_bv_month'];
+              
+            }
+            $amount = $first_left_bv+$temp_amt;
+          }
+          else
+          {
+            $amount=$first_left_bv;
+          }
+
+         return $amount;
+        }
+
+        else
+        {
+          return $amount=0;
+
+        }
+      
+
+      }
+
+
+
+         public function getRightMonthBusiness($user_id,$month,$year)
+      {
+          
+        $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+        if ($user->_right!=null) {
+          $right = \DB::table('users')->where(['email'=>$user->_right])->first();
+          $first_left_bv = $this->get_month_BV($right->email,$month,$year);
+          $user_array1 = [];
+          $user_array = [];
+          $amount=0;
+          $temp_amt =0;
+         $b= $this->get_all_child_between_date($right->email,$user_array,$month,$year);
+        
+        if(isset($b))
+          {
+            foreach ($b as $key => $value) {
+              $temp_amt = $temp_amt+$value['self_bv_month'];
+              
+            }
+            $amount = $first_left_bv+$temp_amt;
+          }
+          else
+          {
+            $amount=$first_left_bv;
+          }
+
+         return $amount;
+        }
+
+        else
+        {
+          return $amount=0;
+
+        }
+      
+
+      }
+
+
+
      
 
          public function getRightCount($user_id)
@@ -2960,6 +3069,7 @@ public function transfer_epin()
           $user_array = [];
           $count=0;
          $a= $this->get_all_child($right->email,$user_array);
+         
          if(isset($a))
           {
             $count = 1+sizeof($a);
@@ -2998,7 +3108,7 @@ public function transfer_epin()
           $temp_amt = 0;
           $a= $this->get_all_child($right->email,$user_array);
 
-         // print_r($a);
+         
          if(isset($a))
           {
             foreach ($a as $key => $value) {
@@ -3045,12 +3155,32 @@ public function transfer_epin()
 
       }
 
+
+
+          public function get_month_BV($user_id,$month,$year)
+      {
+
+
+         $trans = \DB::table('transaction')->where(['sender_id'=>$user_id])->where(['activity_reason'=>"add_package"])->where(['approval'=>"completed"])->whereRAW('YEAR(date) =?', [$year])->whereRAW('MONTH(date) =?', [$month])->get();
+
         
 
+         $amount = 0;
+
+         foreach ($trans as $key => $value) 
+         {
+          
+          $amount =$amount+$value->amount;
+
+         }
+
+         return $amount;
 
 
-      
+      }
 
+
+   
 
    
       public function get_all_child($user_id, array $user_array)
@@ -3066,7 +3196,7 @@ public function transfer_epin()
         $temp_arr            = [];
         $temp_arr['user_id'] = $left;
         $temp_arr['side']    = "left";
-        
+        $temp_arr['rank']    = $this->check_rank($left);
         $temp_arr['self_bv'] = $this->getBV($left);
 
         array_push($user_array, $temp_arr);
@@ -3084,7 +3214,7 @@ public function transfer_epin()
         $temp_arr            = [];
         $temp_arr['user_id'] = $right;
         $temp_arr['side']    = "right";
-        
+        $temp_arr['rank']    = $this->check_rank($right);
         $temp_arr['self_bv'] = $this->getBV($right);
         
        array_push($user_array, $temp_arr);
@@ -3097,31 +3227,364 @@ public function transfer_epin()
 
        return $user_array;
 
+
+
       }
 
 
 
 
-            public function loginas()
+        public function get_all_child_between_date($user_id, array $user_array,$month,$year)
+      {   
+
+        $get_left_right_data = \DB::table('users')->where(['email'=>$user_id])->first();
+
+        
+        if ($get_left_right_data->_left!=null) {
+
+        $left = $get_left_right_data->_left;
+         
+        $temp_arr            = [];
+        $temp_arr['user_id'] = $left;
+        $temp_arr['side']    = "left";
+        
+        $temp_arr['self_bv_month'] = $this->get_month_BV($left,$month,$year);
+
+        array_push($user_array, $temp_arr);
+
+       $user_array= $this->get_all_child_between_date($left,$user_array,$month,$year);
+
+
+        
+        }
+
+        if ($get_left_right_data->_right!=null) 
+        {
+        $right = $get_left_right_data->_right;
+         
+        $temp_arr            = [];
+        $temp_arr['user_id'] = $right;
+        $temp_arr['side']    = "right";
+        
+        $temp_arr['self_bv_month'] = $this->get_month_BV($right,$month,$year);
+        
+       array_push($user_array, $temp_arr);
+    
+      $user_array= $this->get_all_child_between_date($right,$user_array,$month,$year);
+
+       
+       }
+       
+
+       return $user_array;
+
+      }
+
+
+
+
+       public function loginas()
     {
         $user = Sentinel::findById($_GET['id']);
 
         Sentinel::login($user);
         
         return redirect('/admin/dashboard');
+
     }
 
 
+    public function Check_super_booster($user_id)
+    {
+      $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+        $self_left_count  = 0;
+        $self_right_count = 0;
+
+        $child_data = \DB::table('users')->where(['spencer_id'=>$user_id])->get();
+
+        foreach ($child_data as $key => $value)
+        {
+         
 
 
-     
+           if(strtotime(date('Y-m-d', strtotime("+5 day",strtotime($user->joining_date))))>=strtotime($value->joining_date))
+            {
+
+              if ($value->my_side == "_left" AND $value->is_active == 2)
+              {
+                $self_left_count = $self_left_count + 1;
+              }
+
+              if ($value->my_side == "_right"  AND $value->is_active == 2)
+              {
+                $self_right_count = $self_right_count + 1;
+              }
+
+          }
+      }
+
+        $arr_count               = [];
+        $arr_count['self_left']  = $self_left_count;
+        $arr_count['self_right'] = $self_right_count;
+        $arr_count['booster']   = "false";
+
+        if ($self_left_count >= 2 AND $self_right_count >=1) {
+            
+            $arr_count['booster'] = "true";
+
+        }
+
+        elseif ($self_right_count >= 2 AND $self_left_count >=1)
+        {
+          $arr_count['booster'] = "true";
+        }
 
 
+        return $arr_count;
 
-    
-   
+      }
+
+
+      public function booster_income($user_id)
+      {
+
+      $booster_income = 0;
+       $super_booster_cond= $this->Check_super_booster($user_id);
+       
+       if ($super_booster_cond['booster']=="true") 
+       {
+
+          $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+          $today = date('Y-m-d');
+
+          $date_time1        = strtotime($user->joining_date);
+                      
+          $date_time2        = strtotime($today);
+        
+          $calculate_seconds = ($date_time2-$date_time1);
+          
+          $days              = floor($calculate_seconds / (24 * 60 * 60 ));
+
+         // echo $days;
 
         
-                
+         
+
+          $rev = \DB::table('transaction')
+                ->groupBy('month')
+                ->groupBy('year')
+                ->where(['activity_reason'=>"add_package"])
+                ->get([
+                            \DB::raw('YEAR(date) as year'),
+                            \DB::raw('MONTH(date) as month'),
+                            \DB::raw('MONTHNAME(date) as monthname'),
+                            
+                        ]);
+
+
+               
+
+               
+          $final_arr_month= [];
+          
+
+          foreach ($rev as $key => $value) {
+
+
+
+            $left_month = $this->getLeftMonthBusiness($user->email,$value->month,$value->year);
+            $right_month = $this->getRightMonthBusiness($user->email,$value->month,$value->year);
+
+            if ($left_month >= $right_month) {
+                $month_bv = $right_month;
+            }
+            elseif($right_month >= $left_month){
+
+              $month_bv = $left_month;
+
+            }
+            $arr_month = [];
+            $arr_month['month']       = $value->month;
+            $arr_month['monthname']   = $value->monthname;
+            $arr_month['year']      = $value->year;
+            $arr_month['business_left'] = $left_month;
+            $arr_month['business_right'] = $right_month;
+            $arr_month['total_business'] = $month_bv;
+            $arr_month['booster_income'] = ($month_bv) * (2/100);
+
+            array_push($final_arr_month, $arr_month);
+
+            $booster_income = $booster_income + ($month_bv) * (2/100);
+
+
+          }
+
+          
+
+       }
+       
+
+       return $booster_income;
+
+
+      }
+
+
+
+      public function booster_income_data($user_id)
+      {
+
+      $final_arr_month= [];
+      $booster_income = 0;
+       $super_booster_cond= $this->Check_super_booster($user_id);
+       
+       if ($super_booster_cond['booster']=="true") 
+       {
+
+          $user=  \DB::table('users')->where(['email'=>$user_id])->first();
+
+          $today = date('Y-m-d');
+
+          $date_time1        = strtotime($user->joining_date);
+                      
+          $date_time2        = strtotime($today);
+        
+          $calculate_seconds = ($date_time2-$date_time1);
+          
+          $days              = floor($calculate_seconds / (24 * 60 * 60 ));
+
+         // echo $days;
+
+        
+         
+
+          $rev = \DB::table('transaction')
+                ->groupBy('month')
+                ->groupBy('year')
+                ->where(['activity_reason'=>"add_package"])
+                ->get([
+                            \DB::raw('YEAR(date) as year'),
+                            \DB::raw('MONTH(date) as month'),
+                            \DB::raw('MONTHNAME(date) as monthname'),
+                            
+                        ]);
+
+
+               
+
+               
+          
+          
+
+          foreach ($rev as $key => $value) {
+
+
+
+            $left_month = $this->getLeftMonthBusiness($user->email,$value->month,$value->year);
+            $right_month = $this->getRightMonthBusiness($user->email,$value->month,$value->year);
+
+
+             if ($left_month >= $right_month) {
+                $month_bv = $right_month;
+            }
+            elseif($right_month >= $left_month){
+
+              $month_bv = $left_month;
+
+            }
+
+
+            $arr_month = [];
+            $arr_month['month']       = $value->month;
+            $arr_month['monthname']   = $value->monthname;
+            $arr_month['year']      = $value->year;
+            $arr_month['business_left'] = $left_month;
+            $arr_month['business_right'] = $right_month;
+            $arr_month['total_business'] = $month_bv;
+            $arr_month['booster_income'] = ($month_bv) * (2/100);
+
+            array_push($final_arr_month, $arr_month);
+
+            $booster_income = $booster_income + ($month_bv) * (2/100);
+
+
+          }
+
+          
+
+       }
+       
+
+       return $final_arr_month;
+
+
+      }
+
+
+      public function get_company_bv()
+      {
+
+         $bv_data = \DB::table('transaction')
+                ->where(['activity_reason'=>"add_package"])
+                ->where(['approval'=>"completed"])
+                ->get();
+
+          $amount = 0;
+
+         foreach ($bv_data as $key => $value) {
+           # code...
+
+          $amount =$amount+$value->amount;
+         }
+
+
+
+         return $amount;
+
+
+      }
+
+
+
+      public function check_rank($user_id)
+      {
+        $self_bv_left = $this->getLeftBusiness($user_id);
+        $self_bv_right= $this->getRightBusiness($user_id);
+
+
+        $bv=0;
+        if ($self_bv_left >= $self_bv_right) 
+        {
+            $bv = $self_bv_right;
+         
+        }
+
+        elseif($self_bv_right >= $self_bv_left)
+        {
+
+           $bv = $self_bv_left;
+        }
+
+
+        if ($bv >= 500000)
+        {
+          $rank = "Silver";
+        }
+
+        else
+        {
+          $rank = "normal";
+        }
+
+
+        return $rank;
+
+
+      }
+
+
+
 
 }

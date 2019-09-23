@@ -31,6 +31,9 @@
                         title="Remove">
                   <i class="fa fa-times"></i></button> --}}
               </div>
+              <?php 
+              $user = Sentinel::check();
+              ?>
               <!-- /. tools -->
               <form class="col s12" method="post" action="{{url('/')}}/admin/choose_plan" data-parsley-validate="">
               {{ csrf_field() }}
@@ -45,7 +48,9 @@
                     $plans = \DB::table('package')->get();
                     ?>
               @foreach($plans as $key=>$value)
+              @if($user->amount < $value->amount)
                       <option value="{{$value->amount}}">{{$value->amount}}Rs {{$value->package_name}}</option>
+              @endif
             @endforeach
            
            </select>

@@ -76,7 +76,7 @@
                  <p>{{$user->plan}}</p>
            
 
-                <a href="{{url('/')}}/admin/add_unit"> <button class="btn bg-maroon btn-flat margin">Activate Package</button></a>
+                <a href="{{url('/')}}/admin/add_unit"> <button class="btn bg-maroon btn-flat margin">Upgrade Package</button></a>
            
             </div>
             <div class="icon">
@@ -106,13 +106,13 @@
                 <h3>Inactive</sup></h3>
                 @endif
               
-                 <p>matching Income</p>
+                 <p>Matching Income</p>
              
             </div>
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer">matching Income<i class="fa fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">Matching Income<i class="fa fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <!-- ./col -->
@@ -164,7 +164,7 @@
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer">Day Business<i class="fa fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">Day Business Volume<i class="fa fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <!-- ./col -->
@@ -213,16 +213,16 @@
               
 
                  @if($user->is_active=='2')
-                <h3>Rs {{$wallet_details['referal_income']}}</h3>
+                <h3>Rs {{$wallet_details['booster_income']}}</h3>
                 @else
                 <h3>Inactive</sup></h3>
                 @endif
-              <p>Monthly Income</p>
+              <p>Booster Income</p>
             </div>
             <div class="icon">
               <i class="ion ion-pie-graph"></i>
             </div>
-            <a href="#" class="small-box-footer">Monthly Income<i class="fa fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">Booster Income<i class="fa fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <!-- ./col -->
@@ -242,7 +242,7 @@
             <div class="inner">
               
                 @if($user->is_active=='2')
-              <h3>Rs {{$wallet_details['left_count']}}</sup></h3>
+              <h3> {{$wallet_details['left_count']}}</sup></h3>
                 @else
                 <h3>Inactive</sup></h3>
                 @endif
@@ -265,7 +265,7 @@
             <div class="inner">
               
                 @if($user->is_active=='2')
-              <h3>Rs {{$wallet_details['right_count']}}</sup></h3>
+              <h3> {{$wallet_details['right_count']}}</sup></h3>
                 @else
                 <h3>Inactive</sup></h3>
                 @endif
@@ -301,7 +301,7 @@
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer">Left Business<i class="fa fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">Left Business Volume<i class="fa fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <!-- ./col -->
@@ -325,7 +325,7 @@
             <div class="icon">
               <i class="ion ion-bag"></i>
             </div>
-            <a href="#" class="small-box-footer">Right Business<i class="fa fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">Right Business Volume<i class="fa fa-arrow-circle-right"></i></a>
           </div>
         </div>
         <!-- ./col -->

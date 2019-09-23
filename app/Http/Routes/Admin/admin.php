@@ -222,7 +222,9 @@ Route::get('/view1',							['as'=>'view1',						'uses'=>'Admin\AdminController@v
 
 	Route::post('/choose_plan',		['as'=>'choose_plan',	'uses'=>'Admin\AuthController@choose_plan']);
 
+	Route::get('/booster_income_data_view',			        	['as'=>'booster_income_data_view',		        	'uses'=>'Admin\AdminController@booster_income_data_view']);
 
+	
 
 
 	Route::get('export', 'Admin\AdminController@export');

@@ -34,7 +34,7 @@
                   <th>Issued to</th>
                   <th>Date</th>
                   <th>Amount</th>
-                  <th>Action</th>
+                  
                 </tr>
                 </thead>
                 <tbody>
@@ -49,7 +49,7 @@
                       
                       <td>{{$value->created_at}}</td>
                       <td>{{$value->amount or 'NA'}}</td>
-                      <td><a onclick="open_model(this)" data-sample-id="{{$value->amount}}" value="{{$value->id}}"  href="javascript:void(0)"  class="button1 btn label-danger">Use Epin to activate ID</a></td>
+                     
                      
                     </tr>
                   @endforeach
